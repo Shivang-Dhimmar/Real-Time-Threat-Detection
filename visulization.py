@@ -8,7 +8,7 @@ utilization_data = []
 load_data = []
 time_data = []
 max_points = 60 
-tick_interval = 5
+tick_interval = 10
 
 
 plt.figure(figsize=(10, 10))

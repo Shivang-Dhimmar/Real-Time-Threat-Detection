@@ -8,7 +8,7 @@ utilization_data = []
 load_data = []
 time_data = []
 max_points = 60 
-tick_interval = 10
+tick_interval = 5
 
 
 plt.figure(figsize=(10, 10))
@@ -30,7 +30,7 @@ ax2.set_xlabel('Time (s)')
 ax2.set_ylabel('Load Average')
 line2, = ax2.plot([], [], lw=2)
 ax2.set_xlim(0, 60)  
-ax2.set_ylim(0, 15) 
+ax2.set_ylim(0, 10) 
 ax2.grid()
 
 def update(frame):

@@ -30,7 +30,7 @@ ax2.set_xlabel('Time (s)')
 ax2.set_ylabel('Load Average')
 line2, = ax2.plot([], [], lw=2)
 ax2.set_xlim(0, 60)  
-ax2.set_ylim(0, 12) 
+ax2.set_ylim(0, 15) 
 ax2.grid()
 
 def update(frame):

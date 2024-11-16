@@ -1,0 +1,6 @@
+ClamAV daemon is runnig.
+Error File path check failure: Permission denied. happened in file /home/shivang/Academics/RDBMS/Project/Postgres_Data/data!
+Error Access denied. happened in file /home/shivang/Academics/RDBMS/Project/Postgres_Data/bin/logfile!
+Error File path check failure: Permission denied. happened in file /home/shivang/Academics/RDBMS/Project/postgres/postgres/tmp_install/initdb-template!
+Virus Win.Test.EICAR_HDB-1 detected in file /home/shivang/Academics/Software Lab/Project/code/Real-Time-Threat-Detection/test/eicar.com!
+Virus Win.Test.EICAR_HDB-1 detected in file /home/shivang/Academics/Software Lab/Project/code/Real-Time-Threat-Detection/test/eicar_com.zip!

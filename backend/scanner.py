@@ -2,8 +2,8 @@ import pyclamd
 import sys
 import os
 
-
 class ClamAVScanner:
+
     def __init__(self):
         self.connection = pyclamd.ClamdUnixSocket()
 
@@ -25,11 +25,13 @@ class ClamAVScanner:
             sys.exit(1)
         return result
     
-    def format_result(self,result,directory_path):
+    def format_result(self,result):
         if result:
             messages = []
             for file, (status, name) in result.items():
-                if status == 'FOUND':
+                if status == 'OK' :
+                    messages.append(f"Directory {file} is clean.")
+                elif status == 'FOUND':
                     messages.append(f"Virus {name} detected in file {file}!")
                 elif status=='ERROR':
                     messages.append(f"Error {name} happened in file {file}!")
@@ -37,19 +39,9 @@ class ClamAVScanner:
                     messages.append("Unknown Output")
             return "\n".join(messages)
         else:
-            return f"Directory {directory_path} is clean.:)"
-        
-    def run_scan(self,directory_path):
-        if not self.is_clamd_daemon_running():
-            print("ClamAV daemon is not running.")
-        else:
-            print("ClamAV daemon is runnig.")
-        try:
-            result = self.scan_directory(directory_path)
-            return self.format_result(result,directory_path)
-        except Exception as e:
-            return str(e)
-        
+            return "Directory is empty!"
+                
+
 
 # if __name__ == "__main__":
 #     if len(sys.argv) != 2:

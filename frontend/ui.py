@@ -1,7 +1,6 @@
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QPushButton, QFileDialog, QMessageBox, QProgressBar, QTextEdit
-from PyQt5.QtGui import QIcon, QFont, QColor
-from PyQt5.QtCore import QTimer, Qt, QPropertyAnimation, QPoint, QEasingCurve
-from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtGui import QIcon, QFont
+from PyQt5.QtCore import Qt, QThread, pyqtSignal
 import sys
 import os
 from backend.scanner import ClamAVScanner
@@ -13,7 +12,7 @@ class ScanWorker(QThread):
     def __init__(self, directory_path):
         super().__init__()
         self.directory_path = directory_path
-        self.scanner = ClamAVScanner()  
+        self.scanner = ClamAVScanner()
 
     def run(self):
         if not self.scanner.is_clamd_daemon_running():
@@ -29,12 +28,11 @@ class ScanWorker(QThread):
             self.result_signal.emit(str(e))
         self.result_signal.emit("Scanning complete")
 
+
 class ClamAVFrontend(QWidget):
     def __init__(self):
         super().__init__()
-        # Set up the UI
         self.initUI()
-        
 
     def initUI(self):
         self.setWindowTitle("Malware Scanner")
@@ -73,6 +71,10 @@ class ClamAVFrontend(QWidget):
             QPushButton:hover {
                 background-color: #FF7F50;  # Lighter orange on hover
             }
+            QPushButton:disabled {
+                background-color: #A86C53;  # Darker orange when disabled
+                color: #6C4F3D;  # Darker text when disabled
+            }
         """)
         self.scan_button_directory.setIcon(QIcon("folder_icon.png"))  # Add folder icon
         self.scan_button_directory.clicked.connect(self.select_directory)
@@ -93,6 +95,10 @@ class ClamAVFrontend(QWidget):
             QPushButton:hover {
                 background-color: #87CEFA;  # Lighter blue on hover
             }
+            QPushButton:disabled {
+                background-color: #80BFFF;  # Darker blue when disabled
+                color: #6D8B98;  # Darker text when disabled
+            }
         """)
         self.scan_button_start.setIcon(QIcon("start_icon.png"))  # Add start icon
         self.scan_button_start.clicked.connect(self.start_scan)
@@ -112,6 +118,10 @@ class ClamAVFrontend(QWidget):
             }
             QPushButton:hover {
                 background-color: #66BB6A;  # Lighter green on hover
+            }
+            QPushButton:disabled {
+                background-color: #6B8E23;  # Darker green when disabled
+                color: #4F5B3A;  # Darker text when disabled
             }
         """)
         self.full_scan_button.setIcon(QIcon("full_scan_icon.png"))  # Add icon for full scan
@@ -168,6 +178,9 @@ class ClamAVFrontend(QWidget):
             self.output_box.clear()  # Clear any previous output
 
     def start_scan(self):
+        # Disable buttons during scanning
+        self.set_buttons_enabled(False)
+
         # Reset the progress bar to 0 before starting a new scan
         self.circular_progress.setValue(0)
         self.output_box.clear()  # Clear previous results
@@ -176,35 +189,32 @@ class ClamAVFrontend(QWidget):
         # Check if a directory is selected
         if not hasattr(self, 'directory_path'):
             QMessageBox.warning(self, "Error", "Please select a directory first!")
+            self.set_buttons_enabled(True)
             return
-        if self.directory_path=="":
+        if self.directory_path == "":
             QMessageBox.warning(self, "Error", "Please select a directory first!")
+            self.set_buttons_enabled(True)
             return
         
-        self.scan_worker=ScanWorker(self.directory_path)
-        # self.result=self.scanner.run_scan(self.directory_path)
+        self.scan_worker = ScanWorker(self.directory_path)
         self.scan_worker.result_signal.connect(self.handle_result)
-        # self.scan_worker.progress_signal.connect(self.update_progress)
         self.scan_worker.start()
-        self.set_progress_visible(True)
-
-        
 
     def full_scan(self):
+        # Disable buttons during scanning
+        self.set_buttons_enabled(False)
+
         self.output_box.clear()  # Clear any previous output
         self.status_label.setText("Performing Full Scan... Please wait.")
-        self.directory_path=os.path.expanduser("~")
-        print(self.directory_path)
-        self.scan_worker=ScanWorker(self.directory_path)
-        self.scan_worker.result_signal.connect(self.handle_result)
-        # self.scan_worker.progress_signal.connect(self.update_progress)
-        self.scan_worker.start()
-        self.set_progress_visible(True)
+        self.directory_path = os.path.expanduser("~")
         
+        self.scan_worker = ScanWorker(self.directory_path)
+        self.scan_worker.result_signal.connect(self.handle_result)
+        self.scan_worker.start()
 
-    def handle_result(self,result):
-        if "Scanning startes" in result:
-            if self.directory_path==os.path.expanduser("~"):
+    def handle_result(self, result):
+        if "Scanning started" in result:
+            if self.directory_path == os.path.expanduser("~"):
                 self.output_box.append("Full scan started...")
             else:
                 self.output_box.append("Scanning started...")
@@ -212,7 +222,7 @@ class ClamAVFrontend(QWidget):
             return
         
         if "Scanning complete" in result:
-            if self.directory_path==os.path.expanduser("~"):
+            if self.directory_path == os.path.expanduser("~"):
                 self.output_box.append("Full scan complete!")
                 self.status_label.setText("Full scan complete!")
                 self.set_progress_visible(False)
@@ -222,19 +232,100 @@ class ClamAVFrontend(QWidget):
                 self.output_box.append("Scan Complete!")
                 self.set_progress_visible(False)
                 QMessageBox.information(self, "Scan Complete", "The scan has completed successfully!")
-            
-            self.directory_path=""
+
+            self.directory_path = ""
+            self.set_buttons_enabled(True)
             self.scan_worker.result_signal.disconnect(self.handle_result)
             return
         self.output_box.append(result)
-    
+
+    def set_buttons_enabled(self, enabled: bool):
+        """Enable or disable all buttons and change their appearance"""
+        self.scan_button_directory.setEnabled(enabled)
+        self.scan_button_start.setEnabled(enabled)
+        self.full_scan_button.setEnabled(enabled)
+
+        if enabled:
+            # Enable normal button appearance
+            self.scan_button_directory.setStyleSheet("""
+                QPushButton {
+                    background-color: #FF5733;
+                    color: white;
+                    padding: 25px 50px;
+                    border-radius: 30px;
+                    border: none;
+                    font-weight: bold;
+                }
+                QPushButton:hover {
+                    background-color: #FF7F50;
+                }
+            """)
+            self.scan_button_start.setStyleSheet("""
+                QPushButton {
+                    background-color: #00BFFF;
+                    color: white;
+                    padding: 25px 60px;
+                    border-radius: 30px;
+                    border: none;
+                    font-weight: bold;
+                }
+                QPushButton:hover {
+                    background-color: #87CEFA;
+                }
+            """)
+            self.full_scan_button.setStyleSheet("""
+                QPushButton {
+                    background-color: #4CAF50;
+                    color: white;
+                    padding: 25px 60px;
+                    border-radius: 30px;
+                    border: none;
+                    font-weight: bold;
+                }
+                QPushButton:hover {
+                    background-color: #66BB6A;
+                }
+            """)
+        else:
+            # Disabled appearance with darker colors
+            self.scan_button_directory.setStyleSheet("""
+                QPushButton {
+                    background-color: #A86C53;
+                    color: #6C4F3D;
+                    padding: 25px 50px;
+                    border-radius: 30px;
+                    border: none;
+                    font-weight: bold;
+                }
+            """)
+            self.scan_button_start.setStyleSheet("""
+                QPushButton {
+                    background-color: #80BFFF;
+                    color: #6D8B98;
+                    padding: 25px 60px;
+                    border-radius: 30px;
+                    border: none;
+                    font-weight: bold;
+                }
+            """)
+            self.full_scan_button.setStyleSheet("""
+                QPushButton {
+                    background-color: #6B8E23;
+                    color: #4F5B3A;
+                    padding: 25px 60px;
+                    border-radius: 30px;
+                    border: none;
+                    font-weight: bold;
+                }
+            """)
+
     def set_progress_visible(self, visible: bool):
         """Method to control visibility of the progress bar"""
         self.circular_progress.setVisible(visible)
-            
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = ClamAVFrontend()
-    ex.show()
+    frontend = ClamAVFrontend()
+    frontend.show()
     sys.exit(app.exec_())
